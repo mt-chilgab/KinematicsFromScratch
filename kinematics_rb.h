@@ -30,9 +30,6 @@ double radToDeg(double rad){
 }
 
 
-
-
-
 //FK
 
 Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
@@ -55,19 +52,6 @@ Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	Eigen::Vector4d id(0,0,0,1);
 	return H1*H2*H3*id;
 }
-
-/*Eigen::Vector4d bodyFK(Eigen::Vector3d jointAngle, const int legID);
-	Eigen::Matrix4d transMat;
-	transMat << 1, 0, 0, 0,
-		    0, 1, 0, legID,
-		    0, 0, 1, ,
-		    0, 0, 0, 1;
-	return legFK(jointAngle, leg)
-
-}*/
-
-
-
 
 
 
@@ -96,14 +80,6 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 }
 
 
-/*Eigen::Vectord bodyIK(Eigen::Vector4d bodyPosition, const int lr, const int parity3){
-	//bodyPosition : position of the end-effector w.r.t the COM of the body (x', y', z' 1)
-	//parity3 : the same as legIK
-	
-	double 
-}*/
 
-
-
-//VK
-
+//VK 
+//VK will be used for trajectory generation... TBD
