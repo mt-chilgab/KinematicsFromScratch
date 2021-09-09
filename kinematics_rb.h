@@ -1,4 +1,4 @@
-#ifndef _GLIBCXX_IOSTREAM
+#ifndef o_GLIBCXX_IOSTREAM
 #include <iostream>
 #endif
 
@@ -10,7 +10,9 @@
 #include <vector>
 #endif
 
+#ifndef EIGEN_CORE_H
 #include <Eigen/Core>
+#endif
 
 #define PI 3.1415926
 #define l1 0.0838
@@ -71,7 +73,7 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 	R2 = sqrt(pow(R1, 2) + pow(z, 2)); 			//R2 : distance from hip joint to end-effector
 	R3 = (pow(R2, 2)-pow(l2, 2)-pow(l3, 2))/(2*l2*l3);
 
-	if(R3 > 1 || R3 < -1) (R3 > 0)?(R3 = 1):(R3 = -1);
+	if(R3 > 1 || R3 < -1) R3 = floor(R3);
 	IKResult[2] = q3Parity*acos(R3);						// q3
 	IKResult[1] = atan2(-z, R1)-atan2(l3*sin(IKResult[2]),l2+l3*cos(IKResult[2]));	// q2
 	IKResult[0] = atan2(y, x)+atan2(R1, -l1*legParity);				// q1
