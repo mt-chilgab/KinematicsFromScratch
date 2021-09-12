@@ -37,23 +37,29 @@ double radToDeg(double rad){
 Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	//jointAngle : (q1, q2, q3)
 	//legParity : -1 if left, 1 if right
-	
-	Eigen::Matrix4d H1, H2, H3;
-	H1 << cos(jointAngle[0]), -sin(jointAngle[0]), 0, -l1*legParity*cos(jointAngle[0]),
-	      sin(jointAngle[0]), cos(jointAngle[0]),  0, -l1*legParity*sin(jointAngle[0]),
-	      0, 0, 1, 0,
-	      0, 0, 0, 1;
-	H2 << 1, 0, 0, 0,
-	      0, cos(jointAngle[1]), -sin(jointAngle[1]), -l2*cos(jointAngle[1]),
-	      0, sin(jointAngle[1]), cos(jointAngle[1]), -l2*sin(jointAngle[1]),
-	      0, 0, 0, 1;
-	H3 << 1, 0, 0, 0,
-	      0, cos(jointAngle[2]), -sin(jointAngle[2]), -l3*cos(jointAngle[2]),
-	      0, sin(jointAngle[2]), cos(jointAngle[2]), -l3*sin(jointAngle[2]),
-	      0, 0, 0, 1; 
+
+	Eigen::Matrix4d H01, H12, H23;	
+	H01 << 1, 0, 0, 0,
+		0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
+	        0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
+	        0, 0, 0, 1;
+
+
+	H12 << cos(jointAngle[1]), 0, sin(jointAngle[1]), -l2*sin(jointAngle[1]),
+	     	        0,          1,         0,                    0,
+		-sin(jointAngle[1]),0, cos(jointAngle[1]), -l2*cos(jointAngle[1]), 	
+	                0,          0,         0,          1;
+
+
+	H23 << cos(jointAngle[2]), 0, sin(jointAngle[2]), -l3*sin(jointAngle[2]),
+	     	        0,          1,         0,                    0,
+		-sin(jointAngle[2]),0, cos(jointAngle[2]), -l3*cos(jointAngle[2]), 	
+	                0,          0,         0,          1;
+
 	Eigen::Vector4d id(0,0,0,1);
-	return H1*H2*H3*id;
+	return H01*H12*H23*id;
 }
+
 
 
 
@@ -75,11 +81,12 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 
 	if(R3 > 1 || R3 < -1) R3 = floor(R3);
 	IKResult[2] = q3Parity*acos(R3);						// q3
-	IKResult[1] = atan2(-z, R1)-atan2(l3*sin(IKResult[2]),l2+l3*cos(IKResult[2]));	// q2
-	IKResult[0] = atan2(y, x)+atan2(R1, -l1*legParity);				// q1
+	IKResult[1] = atan2(-x, R1)-atan2(l3*sin(IKResult[2]),l2+l3*cos(IKResult[2]));	// q2
+	IKResult[0] = atan2(z, y)+atan2(R1, -l1*legParity);				// q1
 	
 	return IKResult; 
 }
+
 
 
 
