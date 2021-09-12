@@ -86,7 +86,6 @@ Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	return T10*T21r*T21t*T32*id;
 }
 
-
 Eigen::Matrix4d hipFK(const int legID){
 	
 	const int FR = (legID/2)?(-1):(1);
@@ -114,7 +113,7 @@ Eigen::Matrix4d thighFK(Eigen::Vector3d jointAngle, const int legID){
 }
 
 
-Eigen::Vector4d calfFK(Eigen::Vector3d jointAngle, const int legID){
+Eigen::Matrix4d calfFK(Eigen::Vector3d jointAngle, const int legID){
 	Eigen::Matrix4d T10, T21;
 	const int legParity = (legID%2)?(1):(-1);
 
@@ -130,7 +129,6 @@ Eigen::Vector4d calfFK(Eigen::Vector3d jointAngle, const int legID){
 
 	return hipFK(legID)*T10*T21;
 }
-
 
 
 
@@ -170,7 +168,6 @@ Eigen::Vector3d bodyIK(Eigen::Vector4d bodyPosition, const int legID, const int 
 	return legIK(hipPosition, legParity, q3Parity);
 
 }
-
 
 
 //VK 
