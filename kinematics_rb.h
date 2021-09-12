@@ -63,20 +63,17 @@ Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
 	       0, 0, 0, 1;
 	
-
 	//T21r : forward transforamtion from {1}->{2}, rotation only (on Rviz, thigh_fixed -> thigh)
 	T21r << cos(jointAngle[1]), 0, sin(jointAngle[1]), 0,
 	                0,          1,         0,          0,
 	        -sin(jointAngle[1]),0, cos(jointAngle[1]), 0,
 	                0,          0,         0,          1;
 
-
 	//T21t : forward transformation from {1}->{2}, translation only (on RViz, thigh -> calf)
 	T21t << 1, 0, 0, 0,
 	     	0, 1, 0, 0,
 		0, 0, 1, -l2,
 		0, 0, 0, 1;
-
 
 	//T32 : forward transformation from {2}->{3} (on RViz, calf -> foot)
 	T32 << cos(jointAngle[2]), 0, sin(jointAngle[2]), -l3*sin(jointAngle[2]),
@@ -88,6 +85,55 @@ Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	Eigen::Vector4d id(0,0,0,1);
 	return T10*T21r*T21t*T32*id;
 }
+
+
+Eigen::Matrix4d hipFK(const int legID){
+	
+	const int FR = (legID/2)?(-1):(1);
+	const int RL = (legID%2)?(1):(-1);
+	Eigen::Matrix4d THB;
+
+	THB << 1, 0, 0, FR*L/2,
+	       0, 1, 0, RL*W/2,
+	       0, 0, 1, 0, 
+	       0, 0, 0, 1;
+	
+	return THB;
+}
+
+Eigen::Matrix4d thighFK(Eigen::Vector3d jointAngle, const int legID){
+	Eigen::Matrix4d TTH;
+	const int legParity = (legID%2)?(1):(-1);
+
+	TTH << 1, 0, 0, 0,
+	       0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
+	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
+	       0, 0, 0, 1;
+
+	return hipFK(legID)*TTH;
+}
+
+
+Eigen::Vector4d calfFK(Eigen::Vector3d jointAngle, const int legID){
+	Eigen::Matrix4d T10, T21;
+	const int legParity = (legID%2)?(1):(-1);
+
+	T10 << 1, 0, 0, 0,
+	       0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
+	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
+	       0, 0, 0, 1;
+	
+	T21 << cos(jointAngle[1]), 0, sin(jointAngle[1]), -l2*sin(jointAngle[1]),
+	               0,          1,         0,          0,
+	       -sin(jointAngle[1]),0, cos(jointAngle[1]), -l2*cos(jointAngle[1]),
+	               0,          0,         0,          1;
+
+	return hipFK(legID)*T10*T21;
+}
+
+
+
+
 
 
 
@@ -115,6 +161,15 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 	return IKResult; 
 }
 
+Eigen::Vector3d bodyIK(Eigen::Vector4d bodyPosition, const int legID, const int q3Parity){
+	
+	Eigen::Vector4d mul(-1, -1, -1, 1);
+	Eigen::Vector4d hipPosition(hipFK(legID)*(mul.asDiagonal())*bodyPosition);
+	const int legParity = (legID%2)?(1):(-1);
+
+	return legIK(hipPosition, legParity, q3Parity);
+
+}
 
 
 
