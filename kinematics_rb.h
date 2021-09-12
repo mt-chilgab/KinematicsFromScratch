@@ -164,7 +164,7 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 Eigen::Vector3d bodyIK(Eigen::Vector4d bodyPosition, const int legID, const int q3Parity){
 	
 	Eigen::Vector4d mul(-1, -1, -1, 1);
-	Eigen::Vector4d hipPosition(hipFK(legID)*(mul.asDiagonal())*bodyPosition);
+	Eigen::Vector4d hipPosition((-1*hipFK(legID))*(mul.asDiagonal())*bodyPosition);
 	const int legParity = (legID%2)?(1):(-1);
 
 	return legIK(hipPosition, legParity, q3Parity);
