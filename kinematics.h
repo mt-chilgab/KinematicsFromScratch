@@ -96,6 +96,9 @@ Eigen::Vector3d CalculateBezierStance(double phi_st, double V, double angle)
     return StancePosition;
 }
 
+
+
+//////////////        SAHOON!!!!
 Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, const double clearanceHeight)
 {
     double c = cos(Deg2rad(angle));
@@ -127,6 +130,8 @@ Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, cons
 
     return SwingPosito;
 }
+///////////////        SAHOON!
+
 
 
 // Kinematics
