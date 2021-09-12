@@ -1,3 +1,11 @@
+// KINEMATICS_RB.H
+// Coordinate assignment : Every coordinate complies ROS assigned coordinates
+// 			   forward -> x, left -> y, up -> z 
+// Unit : SI units (ex : meter)
+//
+
+
+
 #ifndef _GLIBCXX_IOSTREAM
 #include <iostream>
 #endif
@@ -14,12 +22,20 @@
 #include <Eigen/Core>
 #endif
 
+#ifndef RB_KINEMATICS_H
+#define RB_KINEMATICS_H
+#endif
+
+
+
 #define PI 3.1415926
 #define l1 0.0838
 #define l2 0.2
 #define l3 0.2
-#define L
-#define W
+#define L 0.3610
+#define W 0.094
+
+
 
 
 double degToRad(double deg){
@@ -32,34 +48,46 @@ double radToDeg(double rad){
 }
 
 
-//FK
+//FK and transformations
 
 Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	//jointAngle : (q1, q2, q3)
 	//legParity : -1 if left, 1 if right
+	//Homogeneous Transformations T10 ~ T32 should be applied in reverse of the following order (starts from T32)
 
-	Eigen::Matrix4d H01, H12, H23;	
-	H01 << 1, 0, 0, 0,
-		0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
-	        0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
-	        0, 0, 0, 1;
+	Eigen::Matrix4d T10, T21r, T21t, T32;	
+	
+	//T10 : forward transforamtion from {0}->{1} (on RViz, hip -> thigh_fixed)
+	T10 << 1, 0, 0, 0,
+	       0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
+	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
+	       0, 0, 0, 1;
+	
 
-
-	H12 << cos(jointAngle[1]), 0, sin(jointAngle[1]), -l2*sin(jointAngle[1]),
-	     	        0,          1,         0,                    0,
-		-sin(jointAngle[1]),0, cos(jointAngle[1]), -l2*cos(jointAngle[1]), 	
+	//T21r : forward transforamtion from {1}->{2}, rotation only (on Rviz, thigh_fixed -> thigh)
+	T21r << cos(jointAngle[1]), 0, sin(jointAngle[1]), 0,
+	                0,          1,         0,          0,
+	        -sin(jointAngle[1]),0, cos(jointAngle[1]), 0,
 	                0,          0,         0,          1;
 
 
-	H23 << cos(jointAngle[2]), 0, sin(jointAngle[2]), -l3*sin(jointAngle[2]),
-	     	        0,          1,         0,                    0,
-		-sin(jointAngle[2]),0, cos(jointAngle[2]), -l3*cos(jointAngle[2]), 	
-	                0,          0,         0,          1;
+	//T21t : forward transformation from {1}->{2}, translation only (on RViz, thigh -> calf)
+	T21t << 1, 0, 0, 0,
+	     	0, 1, 0, 0,
+		0, 0, 1, -l2,
+		0, 0, 0, 1;
 
+
+	//T32 : forward transformation from {2}->{3} (on RViz, calf -> foot)
+	T32 << cos(jointAngle[2]), 0, sin(jointAngle[2]), -l3*sin(jointAngle[2]),
+	     	       0,          1,         0,                    0,
+	       -sin(jointAngle[2]),0, cos(jointAngle[2]), -l3*cos(jointAngle[2]), 	
+	               0,          0,         0,                    1;
+
+	
 	Eigen::Vector4d id(0,0,0,1);
-	return H01*H12*H23*id;
+	return T10*T21r*T21t*T32*id;
 }
-
 
 
 
