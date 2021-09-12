@@ -75,7 +75,9 @@ double BezierCurve(double t, int k, double point)
     return point * BinomialFactor(n, k) * pow(t, (double)k) * pow((1 - t), (double)(n - k));
 }
 
-Eigen::Vector3d CalculateBezierStance(double phi_st, double V, double angle)
+
+//////////////////          SAHOON!!
+Eigen::Vector3d CalculateBezierStance(double phi_st, double V, double angle, double clearanceHeight)
 {   
     double c = cos(Deg2rad(angle));
     double s = sin(Deg2rad(angle));
@@ -86,8 +88,9 @@ Eigen::Vector3d CalculateBezierStance(double phi_st, double V, double angle)
     
     Eigen::Vector3d StancePosition(c * p_Stance * fabs(V),                       // stanceX                  
                                    - s * p_Stance * fabs(V),                     // stanceY                       
-                                   - A * cos(pi / (2 * halfStance) * p_Stance)); // stanceZ
+                                   - A * cos(pi / (2 * halfStance) * p_Stance - clearanceHeight); // stanceZ
 
+   
     // std::cout <<  p_Stance << std::endl;
     // *stancePtr = c * p_Stance * fabs(V); // stanceX
     // *(stancePtr + 1) = - s * p_Stance * fabs(V); // stanceY
@@ -97,9 +100,7 @@ Eigen::Vector3d CalculateBezierStance(double phi_st, double V, double angle)
 }
 
 
-
-//////////////        SAHOON!!!!
-Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, const double clearanceHeight)
+Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, double clearanceHeight)
 {
     double c = cos(Deg2rad(angle));
     double s = sin(Deg2rad(angle));
@@ -113,7 +114,7 @@ Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, cons
     
     X <<    -0.05, -0.06, -0.07, -0.07, 0.0, 0.0, 0.07, 0.07, 0.06, 0.05; // (10,1)
     Y <<    0.05, 0.06, 0.07, 0.07, 0.0, -0.0, -0.07, -0.07, -0.06, -0.05; 
-    Z<<    0.0, 0.0, 0.05, 0.05, 0.05, 0.06, 0.06, 0.06, 0.0, 0.0;
+    Z <<    0.0, 0.0, 0.05, 0.05, 0.05, 0.06, 0.06, 0.06, 0.0, 0.0;
 
     X  *= (fabs(V) * c);
     Y  *= (fabs(V) * s);
@@ -128,7 +129,7 @@ Eigen::Vector3d CalculateBezierSwing(double phi_sw, double V, double angle, cons
         SwingPositon[2] += BezierCurve(phi_sw, i, Z[i]); // swingZ
     }
 
-    return SwingPosito;
+    return SwingPosition;
 }
 ///////////////        SAHOON!
 
