@@ -75,8 +75,8 @@ Eigen::Vector3d legIK(Eigen::Vector4d legPosition, const int legParity, const in
 
 	Eigen::Vector3d IKResult;	//IKResult : (q1, q2, q3)
 	
-	R1 = sqrt(pow(x, 2) + pow(y, 2) - pow(l1, 2));		//R1 : y2 distance from hip joint to end-effector
-	R2 = sqrt(pow(R1, 2) + pow(z, 2)); 			//R2 : distance from hip joint to end-effector
+	R1 = sqrt(pow(y, 2) + pow(z, 2) - pow(l1, 2));		//R1 : y2 distance from hip joint to end-effector
+	R2 = sqrt(pow(R1, 2) + pow(x, 2)); 			//R2 : distance from hip joint to end-effector
 	R3 = (pow(R2, 2)-pow(l2, 2)-pow(l3, 2))/(2*l2*l3);
 
 	if(R3 > 1 || R3 < -1) R3 = floor(R3);
