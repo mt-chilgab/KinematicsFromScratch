@@ -22,6 +22,10 @@
 #include <Eigen/Core>
 #endif
 
+#ifndef EIGEN_DENSE_H
+#include <Eigen/Dense>
+#endif
+
 #ifndef RB_KINEMATICS_H
 #define RB_KINEMATICS_H
 #endif
@@ -50,7 +54,7 @@ double radToDeg(double rad){
 
 //FK and transformations
 
-Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
+/*Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	//jointAngle : (q1, q2, q3)
 	//legParity : -1 if left, 1 if right
 	//Homogeneous Transformations T10 ~ T32 should be applied in reverse of the following order (starts from T32)
@@ -84,9 +88,19 @@ Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legParity){
 	
 	Eigen::Vector4d id(0,0,0,1);
 	return T10*T21r*T21t*T32*id;
+}*/
+
+Eigen::Matrix4d invHT(Eigen::Matrix4d ht){
+	Eigen::Matrix3d rotInv = (ht.block<3,3>(0,0)).transpose();	
+	Eigen::Matrix4d ret = Eigen::MatrixXd::Identity(4,4);
+	
+	ret.block<3,3>(0,0) = rotInv;
+	ret.block<3,1>(0,3) = -rotInv * ht.block<3,1>(0,3);
+
+	return ret;
 }
 
-Eigen::Matrix4d hipFK(const int legID){
+Eigen::Matrix4d bodyToHip(const int legID){
 	
 	const int FR = (legID/2)?(-1):(1);
 	const int RL = (legID%2)?(1):(-1);
@@ -100,37 +114,51 @@ Eigen::Matrix4d hipFK(const int legID){
 	return THB;
 }
 
-Eigen::Matrix4d thighFK(Eigen::Vector3d jointAngle, const int legID){
+Eigen::Matrix4d hipToThigh(Eigen::Vector3d jointAngle, const int legID){
 	Eigen::Matrix4d TTH;
 	const int legParity = (legID%2)?(1):(-1);
 
 	TTH << 1, 0, 0, 0,
-	       0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
-	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
+	       0, cos(jointAngle[0]), -sin(jointAngle[0]), l1*legParity*cos(jointAngle[0]),
+	       0, sin(jointAngle[0]), cos(jointAngle[0]),  l1*legParity*sin(jointAngle[0]),
 	       0, 0, 0, 1;
 
-	return hipFK(legID)*TTH;
+	return TTH;
 }
 
 
-Eigen::Matrix4d calfFK(Eigen::Vector3d jointAngle, const int legID){
-	Eigen::Matrix4d T10, T21;
-	const int legParity = (legID%2)?(1):(-1);
+Eigen::Matrix4d thighToCalf(Eigen::Vector3d jointAngle){
+	Eigen::Matrix4d TCT;
 
-	T10 << 1, 0, 0, 0,
-	       0, cos(jointAngle[0]), -sin(jointAngle[0]), -l1*legParity*cos(jointAngle[0]),
-	       0, sin(jointAngle[0]), cos(jointAngle[0]),  -l1*legParity*sin(jointAngle[0]),
-	       0, 0, 0, 1;
-	
-	T21 << cos(jointAngle[1]), 0, sin(jointAngle[1]), -l2*sin(jointAngle[1]),
+	TCT << cos(jointAngle[1]), 0, sin(jointAngle[1]), -l2*sin(jointAngle[1]),
 	               0,          1,         0,          0,
 	       -sin(jointAngle[1]),0, cos(jointAngle[1]), -l2*cos(jointAngle[1]),
 	               0,          0,         0,          1;
 
-	return hipFK(legID)*T10*T21;
+	return TCT;
 }
 
+Eigen::Matrix4d calfToFoot(Eigen::Vector3d jointAngle){
+	Eigen::Matrix4d TFC;
 
+	TFC << cos(jointAngle[2]), 0, sin(jointAngle[2]), -l3*sin(jointAngle[2]),
+	               0,          1,         0,          0,
+	       -sin(jointAngle[2]),0, cos(jointAngle[2]), -l3*cos(jointAngle[2]),
+	               0,          0,         0,          1;
+
+	return TFC;
+}
+
+Eigen::Vector4d legFK(Eigen::Vector3d jointAngle, const int legID){
+	Eigen::Vector4d id(0, 0, 0, 1);
+	return hipToThigh(jointAngle, legID)*thighToCalf(jointAngle)*calfToFoot(jointAngle)*id;
+}
+
+Eigen::Vector4d bodyFK(Eigen::Vector3d jointAngle, const int legID){
+	Eigen::Vector4d id(0, 0, 0, 1);
+	return bodyToHip(legID)*hipToThigh(jointAngle, legID)*thighToCalf(jointAngle)*calfToFoot(jointAngle)*id;
+
+}
 
 
 
